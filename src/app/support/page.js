@@ -69,7 +69,40 @@ function ArrowIcon() {
   );
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+
 export default function Support() {
+  const [supportForm, setSupportForm] = useState({ name: "", email: "", message: "" });
+  const [supportStatus, setSupportStatus] = useState("idle"); // idle | loading | success | error
+  const [supportError, setSupportError] = useState("");
+
+  const handleSupportSubmit = async (e) => {
+    e.preventDefault();
+    if (supportStatus === "loading") return;
+    setSupportStatus("loading");
+    setSupportError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/support`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: supportForm.name,
+          email: supportForm.email,
+          message: supportForm.message,
+          source: "website-support",
+        }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Something went wrong — please try again.");
+      }
+      setSupportStatus("success");
+    } catch (err) {
+      setSupportStatus("error");
+      setSupportError(err.message || "Something went wrong — please try again.");
+    }
+  };
+
   return (
       <>
         <style>{`
@@ -329,6 +362,27 @@ export default function Support() {
           transform: translateY(-2px);
           background: #3b5c47;
         }
+        .form-submit:disabled {
+          opacity: 0.7;
+          cursor: default;
+          transform: none;
+        }
+        .form-error {
+          margin: 4px 0 0;
+          color: #b3261e;
+          font-size: 13px;
+        }
+        .form-success h3 {
+          margin: 0 0 8px;
+          color: #171b1a;
+          font-size: 20px;
+        }
+        .form-success p {
+          margin: 0;
+          color: #47514f;
+          font-size: 15px;
+          line-height: 1.6;
+        }
 
         .final-cta {
           position: relative;
@@ -476,49 +530,63 @@ export default function Support() {
                   </Reveal>
 
                   <Reveal delay={100}>
-                    <form className="form-card" onSubmit={(e) => e.preventDefault()}>
-                      <div className="form-grid">
-                        <div className="form-field">
-                          <label className="form-label" htmlFor="support-name">
-                            Name
-                          </label>
-                          <input
-                              id="support-name"
-                              type="text"
-                              className="form-input"
-                              placeholder="Your name"
-                              required
-                          />
+                    {supportStatus === "success" ? (
+                        <div className="form-card form-success">
+                          <h3>Message sent</h3>
+                          <p>Thanks — we've received your message and will get back to you shortly.</p>
                         </div>
-                        <div className="form-field">
-                          <label className="form-label" htmlFor="support-email">
-                            Email
-                          </label>
-                          <input
-                              id="support-email"
-                              type="email"
-                              className="form-input"
-                              placeholder="you@example.com"
-                              required
-                          />
-                        </div>
-                        <div className="form-field full">
-                          <label className="form-label" htmlFor="support-message">
-                            What’s going on?
-                          </label>
-                          <textarea
-                              id="support-message"
-                              className="form-textarea"
-                              placeholder="Share a few details so we can help faster…"
-                              required
-                          />
-                        </div>
-                      </div>
-                      <button type="submit" className="form-submit">
-                        Send message
-                        <ArrowIcon />
-                      </button>
-                    </form>
+                    ) : (
+                        <form className="form-card" onSubmit={handleSupportSubmit}>
+                          <div className="form-grid">
+                            <div className="form-field">
+                              <label className="form-label" htmlFor="support-name">
+                                Name
+                              </label>
+                              <input
+                                  id="support-name"
+                                  type="text"
+                                  className="form-input"
+                                  placeholder="Your name"
+                                  value={supportForm.name}
+                                  onChange={(e) => setSupportForm({ ...supportForm, name: e.target.value })}
+                                  required
+                              />
+                            </div>
+                            <div className="form-field">
+                              <label className="form-label" htmlFor="support-email">
+                                Email
+                              </label>
+                              <input
+                                  id="support-email"
+                                  type="email"
+                                  className="form-input"
+                                  placeholder="you@example.com"
+                                  value={supportForm.email}
+                                  onChange={(e) => setSupportForm({ ...supportForm, email: e.target.value })}
+                                  required
+                              />
+                            </div>
+                            <div className="form-field full">
+                              <label className="form-label" htmlFor="support-message">
+                                What’s going on?
+                              </label>
+                              <textarea
+                                  id="support-message"
+                                  className="form-textarea"
+                                  placeholder="Share a few details so we can help faster…"
+                                  value={supportForm.message}
+                                  onChange={(e) => setSupportForm({ ...supportForm, message: e.target.value })}
+                                  required
+                              />
+                            </div>
+                          </div>
+                          {supportStatus === "error" && <p className="form-error">{supportError}</p>}
+                          <button type="submit" className="form-submit" disabled={supportStatus === "loading"}>
+                            {supportStatus === "loading" ? "Sending…" : "Send message"}
+                            <ArrowIcon />
+                          </button>
+                        </form>
+                    )}
                   </Reveal>
                 </div>
               </div>

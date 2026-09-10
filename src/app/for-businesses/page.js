@@ -45,13 +45,13 @@ function Reveal({ children, delay = 0, className = "" }) {
     if (!node) return undefined;
 
     const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.12 }
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            setVisible(true);
+            observer.disconnect();
+          }
+        },
+        { threshold: 0.12 }
     );
 
     observer.observe(node);
@@ -59,36 +59,65 @@ function Reveal({ children, delay = 0, className = "" }) {
   }, []);
 
   return (
-    <div
-      ref={ref}
-      className={`reveal ${visible ? "reveal-visible" : ""} ${className}`.trim()}
-      style={{ transitionDelay: `${delay}ms` }}
-    >
-      {children}
-    </div>
+      <div
+          ref={ref}
+          className={`reveal ${visible ? "reveal-visible" : ""} ${className}`.trim()}
+          style={{ transitionDelay: `${delay}ms` }}
+      >
+        {children}
+      </div>
   );
 }
 
 function ArrowIcon() {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
   );
 }
 
 function CheckIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="M20 6 9 17l-5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
   );
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000/api/v1";
+
 export default function ForBusinesses() {
+  const [demoName, setDemoName] = useState("");
+  const [demoEmail, setDemoEmail] = useState("");
+  const [demoStatus, setDemoStatus] = useState("idle"); // idle | loading | success | error
+  const [demoError, setDemoError] = useState("");
+
+  const handleDemoSubmit = async (e) => {
+    e.preventDefault();
+    if (demoStatus === "loading") return;
+    setDemoStatus("loading");
+    setDemoError("");
+    try {
+      const res = await fetch(`${API_BASE_URL}/demo-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: demoName, email: demoEmail, source: "for-businesses" }),
+      });
+      const result = await res.json();
+      if (!res.ok || !result.success) {
+        throw new Error(result.message || "Something went wrong — please try again.");
+      }
+      setDemoStatus("success");
+    } catch (err) {
+      setDemoStatus("error");
+      setDemoError(err.message || "Something went wrong — please try again.");
+    }
+  };
+
   return (
-    <>
-      <style>{`
+      <>
+        <style>{`
         .business-page { overflow: hidden; background: #ffffff; }
         .page-container { width: min(100% - 32px, 1200px); margin-inline: auto; }
         .reveal {
@@ -472,6 +501,8 @@ export default function ForBusinesses() {
         }
         .demo-input {
           width: 100%;
+          flex: 1 1 0;
+          min-width: 0;
           min-height: 52px;
           border-radius: 999px;
           border: 1px solid rgba(255,255,255,0.3);
@@ -481,7 +512,25 @@ export default function ForBusinesses() {
           outline: none;
         }
         .demo-input::placeholder { color: rgba(255,255,255,0.7); }
+        .demo-success {
+          min-height: 52px;
+          display: flex;
+          align-items: center;
+          justify-content: flex-end;
+          text-align: right;
+          color: #ffffff;
+          font-weight: 600;
+          font-size: 15px;
+        }
+        .demo-error {
+          margin: 10px 0 0;
+          text-align: right;
+          color: #ffd7d7;
+          font-size: 13px;
+        }
+        .demo-button:disabled { opacity: 0.7; cursor: default; }
         .demo-button {
+          flex: 0 0 auto;
           min-height: 52px;
           padding: 0 22px;
           border-radius: 999px;
@@ -529,232 +578,256 @@ export default function ForBusinesses() {
         }
       `}</style>
 
-      <div className="business-page">
-        <main>
-          <section className="business-hero">
-            <div className="page-container">
-              <div className="hero-layout">
-                <Reveal>
-                  <div>
-                    <div className="eyebrow">
-                      <span className="eyebrow-dot" />
-                      For cleaning businesses
-                    </div>
-                    <h1 className="hero-title">
-                      Software that keeps your <span>business in control.</span>
-                    </h1>
-                    <p className="hero-copy">
-                      CleanSera helps you run a cleaner, smarter service business with your own branded booking flow, cleaner roster, recurring scheduling system, and premium customer journey — without the noise of a marketplace.
-                    </p>
-                    <div className="hero-actions">
-                      <Link href="/for-businesses#demo" className="primary-button">
-                        Book a demo
-                        <ArrowIcon />
-                      </Link>
-                      <Link href="/pricing" className="secondary-button">
-                        View pricing
-                        <ArrowIcon />
-                      </Link>
-                    </div>
-                    <div className="hero-points">
-                      {[
-                        "Brand-first customer experience",
-                        "Cleaner roster under your control",
-                        "Recurring scheduling built in",
-                      ].map((item) => (
-                        <span key={item} className="hero-point">
+        <div className="business-page">
+          <main>
+            <section className="business-hero">
+              <div className="page-container">
+                <div className="hero-layout">
+                  <Reveal>
+                    <div>
+                      <div className="eyebrow">
+                        <span className="eyebrow-dot" />
+                        For cleaning businesses
+                      </div>
+                      <h1 className="hero-title">
+                        Software that keeps your <span>business in control.</span>
+                      </h1>
+                      <p className="hero-copy">
+                        CleanSera helps you run a cleaner, smarter service business with your own branded booking flow, cleaner roster, recurring scheduling system, and premium customer journey — without the noise of a marketplace.
+                      </p>
+                      <div className="hero-actions">
+                        <Link href="/for-businesses#demo" className="primary-button">
+                          Book a demo
+                          <ArrowIcon />
+                        </Link>
+                        <Link href="/pricing" className="secondary-button">
+                          View pricing
+                          <ArrowIcon />
+                        </Link>
+                      </div>
+                      <div className="hero-points">
+                        {[
+                          "Brand-first customer experience",
+                          "Cleaner roster under your control",
+                          "Recurring scheduling built in",
+                        ].map((item) => (
+                            <span key={item} className="hero-point">
                           <span className="hero-point-icon"><CheckIcon /></span>
-                          {item}
+                              {item}
                         </span>
-                      ))}
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </Reveal>
+                  </Reveal>
 
-                <Reveal delay={120}>
-                  <div className="hero-visual">
-                    <div className="hero-image-box">
-                      <div className="dashboard-card">
-                        <div className="dashboard-header">
-                          <h3>Today’s flow</h3>
-                          <span className="live-pill">Live</span>
-                        </div>
-                        <div className="dashboard-body">
-                          {[
-                            { name: "Northside Home", time: "9:30 AM", status: "Confirmed" },
-                            { name: "Westfield Apts", time: "11:00 AM", status: "Assigned" },
-                            { name: "Oak Terrace", time: "2:15 PM", status: "Reviewing" },
-                          ].map((job) => (
-                            <div key={job.name} className="job-row">
-                              <div>
-                                <div className="job-name">{job.name}</div>
-                                <div className="job-time">{job.time}</div>
+                  <Reveal delay={120}>
+                    <div className="hero-visual">
+                      <div className="hero-image-box">
+                        <div className="dashboard-card">
+                          <div className="dashboard-header">
+                            <h3>Today’s flow</h3>
+                            <span className="live-pill">Live</span>
+                          </div>
+                          <div className="dashboard-body">
+                            {[
+                              { name: "Northside Home", time: "9:30 AM", status: "Confirmed" },
+                              { name: "Westfield Apts", time: "11:00 AM", status: "Assigned" },
+                              { name: "Oak Terrace", time: "2:15 PM", status: "Reviewing" },
+                            ].map((job) => (
+                                <div key={job.name} className="job-row">
+                                  <div>
+                                    <div className="job-name">{job.name}</div>
+                                    <div className="job-time">{job.time}</div>
+                                  </div>
+                                  <span className="status-badge">{job.status}</span>
+                                </div>
+                            ))}
+
+                            <div className="stats-grid">
+                              <div className="mini-stat">
+                                <span className="label">Revenue</span>
+                                <span className="value">$14.8k</span>
                               </div>
-                              <span className="status-badge">{job.status}</span>
-                            </div>
-                          ))}
-
-                          <div className="stats-grid">
-                            <div className="mini-stat">
-                              <span className="label">Revenue</span>
-                              <span className="value">$14.8k</span>
-                            </div>
-                            <div className="mini-stat">
-                              <span className="label">Retention</span>
-                              <span className="value">89%</span>
+                              <div className="mini-stat">
+                                <span className="label">Retention</span>
+                                <span className="value">89%</span>
+                              </div>
                             </div>
                           </div>
                         </div>
                       </div>
-                    </div>
 
-                    <div className="floating-card floating-card-top">
-                      <div className="floating-label">Your brand</div>
-                      <div className="floating-title">Premium booking experience</div>
-                      <div className="floating-copy">Customers book through a polished flow that feels like your business, not a marketplace.</div>
-                    </div>
+                      <div className="floating-card floating-card-top">
+                        <div className="floating-label">Your brand</div>
+                        <div className="floating-title">Premium booking experience</div>
+                        <div className="floating-copy">Customers book through a polished flow that feels like your business, not a marketplace.</div>
+                      </div>
 
-                    <div className="floating-card floating-card-bottom">
-                      <div className="floating-label">Control</div>
-                      <div className="floating-title">Operational clarity</div>
-                      <div className="floating-copy">Everything under your roof, from roster to recurring jobs and customer communication.</div>
+                      <div className="floating-card floating-card-bottom">
+                        <div className="floating-label">Control</div>
+                        <div className="floating-title">Operational clarity</div>
+                        <div className="floating-copy">Everything under your roof, from roster to recurring jobs and customer communication.</div>
+                      </div>
                     </div>
+                  </Reveal>
+                </div>
+              </div>
+            </section>
+
+            <section className="section section-soft">
+              <div className="page-container">
+                <Reveal>
+                  <div className="section-heading">
+                    <div className="section-kicker">Why teams choose CleanSera</div>
+                    <h2 className="section-title">A premium operating layer for businesses that want more control and less chaos.</h2>
+                    <p className="section-copy">The strongest service businesses do not need more noise. They need a cleaner operating system that feels polished, visible, and under their control.</p>
                   </div>
                 </Reveal>
+
+                <div className="benefits-grid">
+                  {BENEFITS.map((benefit, index) => (
+                      <Reveal key={benefit.title} delay={index * 75}>
+                        <article className="benefit-card">
+                          <div className="benefit-icon"><CheckIcon /></div>
+                          <h3>{benefit.title}</h3>
+                          <p>{benefit.body}</p>
+                        </article>
+                      </Reveal>
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="section section-soft">
-            <div className="page-container">
-              <Reveal>
-                <div className="section-heading">
-                  <div className="section-kicker">Why teams choose CleanSera</div>
-                  <h2 className="section-title">A premium operating layer for businesses that want more control and less chaos.</h2>
-                  <p className="section-copy">The strongest service businesses do not need more noise. They need a cleaner operating system that feels polished, visible, and under their control.</p>
-                </div>
-              </Reveal>
-
-              <div className="benefits-grid">
-                {BENEFITS.map((benefit, index) => (
-                  <Reveal key={benefit.title} delay={index * 75}>
-                    <article className="benefit-card">
-                      <div className="benefit-icon"><CheckIcon /></div>
-                      <h3>{benefit.title}</h3>
-                      <p>{benefit.body}</p>
-                    </article>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="section section-green">
-            <div className="page-container">
-              <Reveal>
-                <div className="section-heading">
-                  <div className="section-kicker">Comparison</div>
-                  <h2 className="section-title">CleanSera vs. a marketplace app</h2>
-                </div>
-              </Reveal>
-
-              <div className="comparison-wrap">
-                <div className="comparison-header">
-                  <div> </div>
-                  <div>CleanSera</div>
-                  <div>Typical marketplace</div>
-                </div>
-                {COMPARE_ROWS.map((row, index) => (
-                  <div key={row.label} className="comparison-row" style={{ background: index % 2 === 0 ? "#f9fbf9" : "#ffffff" }}>
-                    <div>{row.label}</div>
-                    <div>{row.cleansera}</div>
-                    <div>{row.marketplace}</div>
+            <section className="section section-green">
+              <div className="page-container">
+                <Reveal>
+                  <div className="section-heading">
+                    <div className="section-kicker">Comparison</div>
+                    <h2 className="section-title">CleanSera vs. a marketplace app</h2>
                   </div>
-                ))}
+                </Reveal>
+
+                <div className="comparison-wrap">
+                  <div className="comparison-header">
+                    <div> </div>
+                    <div>CleanSera</div>
+                    <div>Typical marketplace</div>
+                  </div>
+                  {COMPARE_ROWS.map((row, index) => (
+                      <div key={row.label} className="comparison-row" style={{ background: index % 2 === 0 ? "#f9fbf9" : "#ffffff" }}>
+                        <div>{row.label}</div>
+                        <div>{row.cleansera}</div>
+                        <div>{row.marketplace}</div>
+                      </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="section">
-            <div className="page-container control-grid">
-              <Reveal>
-                <div>
-                  <div className="section-kicker">Control</div>
-                  <h2 className="section-title">You onboard. You offboard. Full stop.</h2>
-                  <p className="section-copy">
-                    Every cleaner on your roster is invited by you and can be removed by you. That means your customer relationships, team quality, and service standards stay under your control — with the right tools working behind the scenes.
-                  </p>
-                </div>
-              </Reveal>
-
-              <Reveal delay={90}>
-                <div className="control-card">
-                  <div className="section-kicker" style={{ marginBottom: 0 }}>Your roster</div>
-                  <ul className="roster-list">
-                    {[
-                      { name: "Amara O.", status: "Active" },
-                      { name: "Femi A.", status: "Active" },
-                      { name: "Grace T.", status: "Offboarded" },
-                    ].map((cleaner) => (
-                      <li key={cleaner.name} className="roster-item">
-                        <span className="roster-name">{cleaner.name}</span>
-                        <span className={`roster-status ${cleaner.status === "Active" ? "roster-active" : "roster-off"}`}>
-                          {cleaner.status}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </Reveal>
-            </div>
-          </section>
-
-          <section className="section section-soft">
-            <div className="page-container">
-              <Reveal>
-                <div className="section-heading">
-                  <div className="section-kicker">Plans</div>
-                  <h2 className="section-title">Plans that grow with your roster</h2>
-                </div>
-              </Reveal>
-
-              <div className="plan-grid">
-                {PLAN_HIGHLIGHTS.map((plan, index) => (
-                  <Reveal key={plan.name} delay={index * 70}>
-                    <div className="plan-card">
-                      <h3>{plan.name}</h3>
-                      <p>{plan.detail}</p>
-                    </div>
-                  </Reveal>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section className="demo-section">
-            <div className="page-container">
-              <div className="demo-inner" id="demo">
+            <section className="section">
+              <div className="page-container control-grid">
                 <Reveal>
                   <div>
-                    <div className="section-kicker" style={{ color: "rgba(255,255,255,0.7)" }}>See it in action</div>
-                    <h2 className="demo-title">See CleanSera running your business</h2>
-                    <p className="demo-copy">
-                      A 20-minute walkthrough with your services, your roster, and your service area — no generic deck, no pressure.
+                    <div className="section-kicker">Control</div>
+                    <h2 className="section-title">You onboard. You offboard. Full stop.</h2>
+                    <p className="section-copy">
+                      Every cleaner on your roster is invited by you and can be removed by you. That means your customer relationships, team quality, and service standards stay under your control — with the right tools working behind the scenes.
                     </p>
                   </div>
                 </Reveal>
 
-                <Reveal delay={80}>
-                  <form className="demo-form">
-                    <input className="demo-input" type="email" placeholder="you@yourbusiness.com" aria-label="Email address" />
-                    <button type="submit" className="demo-button">Book</button>
-                  </form>
+                <Reveal delay={90}>
+                  <div className="control-card">
+                    <div className="section-kicker" style={{ marginBottom: 0 }}>Your roster</div>
+                    <ul className="roster-list">
+                      {[
+                        { name: "Amara O.", status: "Active" },
+                        { name: "Femi A.", status: "Active" },
+                        { name: "Grace T.", status: "Offboarded" },
+                      ].map((cleaner) => (
+                          <li key={cleaner.name} className="roster-item">
+                            <span className="roster-name">{cleaner.name}</span>
+                            <span className={`roster-status ${cleaner.status === "Active" ? "roster-active" : "roster-off"}`}>
+                          {cleaner.status}
+                        </span>
+                          </li>
+                      ))}
+                    </ul>
+                  </div>
                 </Reveal>
               </div>
-            </div>
-          </section>
-        </main>
-      </div>
-    </>
+            </section>
+
+            <section className="section section-soft">
+              <div className="page-container">
+                <Reveal>
+                  <div className="section-heading">
+                    <div className="section-kicker">Plans</div>
+                    <h2 className="section-title">Plans that grow with your roster</h2>
+                  </div>
+                </Reveal>
+
+                <div className="plan-grid">
+                  {PLAN_HIGHLIGHTS.map((plan, index) => (
+                      <Reveal key={plan.name} delay={index * 70}>
+                        <div className="plan-card">
+                          <h3>{plan.name}</h3>
+                          <p>{plan.detail}</p>
+                        </div>
+                      </Reveal>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <section className="demo-section">
+              <div className="page-container">
+                <div className="demo-inner" id="demo">
+                  <Reveal>
+                    <div>
+                      <div className="section-kicker" style={{ color: "rgba(255,255,255,0.7)" }}>See it in action</div>
+                      <h2 className="demo-title">See CleanSera running your business</h2>
+                      <p className="demo-copy">
+                        A 20-minute walkthrough with your services, your roster, and your service area — no generic deck, no pressure.
+                      </p>
+                    </div>
+                  </Reveal>
+
+                  <Reveal delay={80}>
+                    {demoStatus === "success" ? (
+                        <div className="demo-success">Thanks — we'll be in touch shortly to set up your walkthrough.</div>
+                    ) : (
+                        <form className="demo-form" onSubmit={handleDemoSubmit}>
+                          <input
+                              className="demo-input"
+                              type="text"
+                              placeholder="Your name"
+                              aria-label="Your name"
+                              value={demoName}
+                              onChange={(e) => setDemoName(e.target.value)}
+                              required
+                          />
+                          <input
+                              className="demo-input"
+                              type="email"
+                              placeholder="you@yourbusiness.com"
+                              aria-label="Email address"
+                              value={demoEmail}
+                              onChange={(e) => setDemoEmail(e.target.value)}
+                              required
+                          />
+                          <button type="submit" className="demo-button" disabled={demoStatus === "loading"}>
+                            {demoStatus === "loading" ? "Booking…" : "Book"}
+                          </button>
+                        </form>
+                    )}
+                    {demoStatus === "error" && <p className="demo-error">{demoError}</p>}
+                  </Reveal>
+                </div>
+              </div>
+            </section>
+          </main>
+        </div>
+      </>
   );
 }

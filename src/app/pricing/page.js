@@ -26,7 +26,6 @@ const PLANS = [
       "Up to 20 active cleaners",
       "Everything in Starter",
       "Auto-suggested dispatch",
-      "Customer reviews",
       "Priority email support",
     ],
     featured: true,

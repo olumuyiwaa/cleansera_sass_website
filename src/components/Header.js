@@ -12,6 +12,12 @@ const NAV_ITEMS = [
   { label: "Pricing", href: "/pricing" },
 ];
 
+// The actual product (business dashboard / cleaner self-service) lives in
+// the separate cleansera_sass_frontend app, not on this marketing site.
+// Previously "Sign in" pointed at /support, which isn't a sign-in page at
+// all — set NEXT_PUBLIC_APP_URL to that app's deployed URL in production.
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
 export default function Header() {
   const pathname = usePathname();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -58,9 +64,9 @@ export default function Header() {
         </nav>
 
         <div className="hidden md:flex items-center gap-3 shrink-0">
-          <Link href="/support" className="text-sm font-medium text-stone-600 hover:text-ink">
+          <a href={APP_URL} className="text-sm font-medium text-stone-600 hover:text-ink">
             Sign in
-          </Link>
+          </a>
           <Link
             href="/for-businesses#demo"
             className="rounded-md bg-ink px-4 py-2 text-sm font-semibold text-paper hover:bg-sage-800 transition-colors"
@@ -98,9 +104,9 @@ export default function Header() {
                 {item.label}
               </Link>
             ))}
-            <Link href="/support" className="py-2.5 text-sm font-medium text-stone-700">
+            <a href={APP_URL} className="py-2.5 text-sm font-medium text-stone-700">
               Sign in
-            </Link>
+            </a>
             <Link
               href="/for-businesses#demo"
               className="mt-2 rounded-md bg-ink px-4 py-2.5 text-center text-sm font-semibold text-paper"

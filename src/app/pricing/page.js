@@ -143,8 +143,25 @@ function FAQItem({ question, answer, open, onToggle }) {
 export default function Pricing() {
   const [openFaq, setOpenFaq] = useState(0);
 
+  // FAQPage structured data — reuses the same FAQS array the visible
+  // accordion below renders, so the two can never drift out of sync.
+  const faqStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: FAQS.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+
   return (
       <>
+        <script
+            type="application/ld+json"
+            // eslint-disable-next-line react/no-danger
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+        />
         <style>{`
         .pricing-page { overflow: hidden; background: #ffffff; }
         .page-container { width: min(100% - 32px, 1200px); margin-inline: auto; }

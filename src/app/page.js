@@ -549,6 +549,34 @@ export default function Home() {
           border: 1px solid #e6ece7;
           box-shadow: 0 12px 36px rgba(16,24,20,0.06);
         }
+        .hero-image-wrap {
+          position: relative;
+          width: min(100%, 480px);
+          aspect-ratio: 4 / 5;
+          border-radius: 28px;
+          overflow: hidden;
+          border: 1px solid #e6ece7;
+          box-shadow: 0 38px 90px rgba(35, 52, 45, 0.16), 0 0 0 1px rgba(71, 109, 83, 0.06);
+          z-index: 1;
+        }
+        
+        .hero-image {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+        }
+        
+        .hero-image-overlay {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            180deg,
+            rgba(23, 27, 26, 0.08) 0%,
+            rgba(23, 27, 26, 0.35) 100%
+          );
+          pointer-events: none;
+        }
         .person-row {
           display: flex;
           align-items: center;
@@ -775,47 +803,13 @@ export default function Home() {
 
                   <Reveal delay={120}>
                     <div className="hero-visual">
-                      <div className="ops-board">
-                        <div className="ops-board-inner">
-                          <div className="ops-header">
-                            <div>
-                              <div className="ops-label">Operations board</div>
-                              <div className="ops-title">5 scheduled visits</div>
-                            </div>
-                            <span className="ops-live">Live</span>
-                          </div>
-                          <div className="ops-jobs">
-                            <div className="ops-jobs-header">
-                              <span className="ops-label">Today</span>
-                              <span className="ops-team-badge">12 team members</span>
-                            </div>
-                            {[
-                              { name: "Northside Home", time: "9:30 AM", status: "Confirmed" },
-                              { name: "Westfield Apartments", time: "11:00 AM", status: "Assigned" },
-                              { name: "Oak Terrace", time: "2:15 PM", status: "In review" },
-                            ].map((job) => (
-                                <div key={job.name} className="ops-job">
-                                  <div>
-                                    <div className="ops-job-name">{job.name}</div>
-                                    <div className="ops-job-time">{job.time}</div>
-                                  </div>
-                                  <span className="ops-job-status">{job.status}</span>
-                                </div>
-                            ))}
-                          </div>
-                          <div className="ops-metrics">
-                            <div className="ops-metric-dark">
-                              <div className="ops-metric-label">Revenue</div>
-                              <div className="ops-metric-value">$14.8k</div>
-                              <div className="ops-metric-sub">+18% this month</div>
-                            </div>
-                            <div className="ops-metric-light">
-                              <div className="ops-metric-label">Retention</div>
-                              <div className="ops-metric-value">89%</div>
-                              <div className="ops-metric-sub">Recurring clients</div>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="hero-image-wrap">
+                        <img
+                            className="hero-image"
+                            src="https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1200&q=88"
+                            alt="Professional cleaning team working together in a commercial space"
+                        />
+                        <div className="hero-image-overlay" />
                       </div>
 
                       <div className="floating-card floating-card-top">
@@ -823,6 +817,7 @@ export default function Home() {
                         <div className="floating-title">Live operations</div>
                         <div className="floating-copy">Real-time visibility across every visit.</div>
                       </div>
+
                       <div className="floating-card floating-card-bottom">
                         <div className="floating-label">Outcome</div>
                         <div className="floating-title">More control, less chaos</div>
